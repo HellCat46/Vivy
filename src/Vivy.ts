@@ -7,15 +7,24 @@ import {
 } from "discord.js";
 import { readdirSync } from "fs";
 import path from "path";
+import { AniListClient } from "./components/AniListClient";
 
 export class Vivy extends Client {
   commands: Collection<
     string,
     { data: SlashCommandBuilder; execute: Function }
   > = new Collection();
+  anilistClient: AniListClient;
 
   constructor() {
     super({ intents: [IntentsBitField.Flags.Guilds] });
+
+    if (process.env.ANILISTSECRET && process.env.ANILISTID)
+      this.anilistClient = new AniListClient(
+        process.env.ANILISTSECRET,
+        process.env.ANILISTID
+      );
+    else throw new Error("Either Anilist ID or Secret is missing!");
 
     this.UpdateEventHandlers();
     this.UpdateCommandCollection();
@@ -39,9 +48,12 @@ export class Vivy extends Client {
     const data = await this.rest.put(Routes.applicationCommands(this.user.id), {
       body: commandData,
     });
-    if (!(data instanceof Array)) throw new Error("Application Deployment Response was incorrect.");
+    if (!(data instanceof Array))
+      throw new Error("Application Deployment Response was incorrect.");
 
-    console.log(`[Bot] Successfully Refreshed ${data.length} application commands`);
+    console.log(
+      `[Bot] Successfully Refreshed ${data.length} application commands`
+    );
   }
 
   UpdateCommandCollection() {
@@ -61,7 +73,6 @@ export class Vivy extends Client {
 
         delete require.cache[require.resolve(filePath)];
         const command = require(filePath);
-        console.log(filePath);
         if ("data" in command && "execute" in command) {
           commands.set(command.data.name, command);
         } else {

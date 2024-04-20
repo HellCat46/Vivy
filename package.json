@@ -12,9 +12,13 @@
   "dependencies": {
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
+    "gql.tada": "^1.5.4",
+    "graphql": "^16.8.1",
+    "graphql-request": "^6.1.0",
     "pg": "^8.11.5"
   },
   "devDependencies": {
+    "@0no-co/graphqlsp": "^1.10.1",
     "@types/node": "^20.12.7",
     "@types/pg": "^8.11.5",
     "tsc": "^2.0.4",
