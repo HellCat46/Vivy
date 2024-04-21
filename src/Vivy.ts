@@ -7,17 +7,23 @@ import {
 } from "discord.js";
 import { readdirSync } from "fs";
 import path from "path";
-import { AniListClient } from "./components/AniListClient";
+import { AniListClient } from "./components/Clients/AniListClient";
+import { Pool } from "pg";
+import { dbClient } from "./components/Clients/dbClient";
 
 export class Vivy extends Client {
   commands: Collection<
     string,
     { data: SlashCommandBuilder; execute: Function }
-  > = new Collection();
+  >;
   anilistClient: AniListClient;
+  dbclient: dbClient;
 
   constructor() {
     super({ intents: [IntentsBitField.Flags.Guilds] });
+
+    this.commands = new Collection();
+    this.dbclient = new dbClient();
 
     if (process.env.ANILISTSECRET && process.env.ANILISTID)
       this.anilistClient = new AniListClient(

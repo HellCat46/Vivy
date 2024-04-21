@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cron": "^3.1.7",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
     "gql.tada": "^1.5.4",
