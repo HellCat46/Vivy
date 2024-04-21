@@ -4,7 +4,6 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from "discord.js";
-import { graphql } from "graphql";
 
 const months = [
   "Jan",
@@ -77,15 +76,6 @@ export function AnimeEmbed(data: AnimeFields) {
         ? `**Genres:** ${data.genres.toString()}`
         : "\b"
     }
-    ${
-      data.tags && data.tags.length != 0
-        ? `**Tags:** ${data.tags
-            .filter((tag) => tag != null)
-            .filter((tag) => !tag?.isAdult || !tag.isMediaSpoiler)
-            .map((tag) => tag?.name)
-            .toString()}`
-        : "\b"
-    }
   `
   );
 
@@ -146,13 +136,6 @@ interface AnimeFields {
     month: number | null;
     year: number | null;
   } | null;
-  tags:
-    | ({
-        name: string;
-        isMediaSpoiler: boolean | null;
-        isAdult: boolean | null;
-      } | null)[]
-    | null;
   genres: (string | null)[] | null;
   nextAiringEpisode : {episode : number, airingAt : number} | null; 
 }

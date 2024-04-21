@@ -14,7 +14,7 @@ import { dbClient } from "./components/Clients/dbClient";
 export class Vivy extends Client {
   commands: Collection<
     string,
-    { data: SlashCommandBuilder; execute: Function }
+    { data: SlashCommandBuilder; execute: Function, autocomplete ?: Function}
   >;
   anilistClient: AniListClient;
   dbclient: dbClient;

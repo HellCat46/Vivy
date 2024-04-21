@@ -5,17 +5,21 @@ import { SimpleError } from "../components/EmbedTemplates/Error";
 module.exports = {
   once: false,
   async execute(client: Vivy, i: Interaction) {
-    if (i.isAutocomplete()) return;
     try {
       if (i.isChatInputCommand()) {
         const command = client.commands.get(i.commandName);
-
         if (!command) return;
 
-        command.execute(client, i);
+        await command.execute(client, i);
+      } else if (i.isAutocomplete()) {
+        const command = client.commands.get(i.commandName);
+        if (!command || !command.autocomplete) return;
+        
+        await command.autocomplete(client, i);
       }
     } catch (ex) {
       console.error(ex);
+      if (i.isAutocomplete()) return;
       if (i.replied || i.deferred) {
         await i.followUp({
           embeds: [
