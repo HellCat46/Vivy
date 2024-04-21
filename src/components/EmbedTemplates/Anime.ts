@@ -4,6 +4,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from "discord.js";
+import { graphql } from "graphql";
 
 const months = [
   "Jan",
@@ -20,7 +21,7 @@ const months = [
   "Dec",
 ];
 
-export function AnimeEmbed(data: EmbedFields) {
+export function AnimeEmbed(data: AnimeFields) {
   const embed = new EmbedBuilder()
     .setTitle(
       data.title?.romaji ?? data.title?.english ?? data.title?.native ?? null
@@ -42,6 +43,11 @@ export function AnimeEmbed(data: EmbedFields) {
           : ""
       }
       ${data.description ?? " "}\n\n\n 
+      ${
+        data.nextAiringEpisode
+          ? `__The next episode(Ep. ${data.nextAiringEpisode.episode}) will air <t:${data.nextAiringEpisode.airingAt}:R>__`
+          : "\b"
+      }
       **Score**: ${data.meanScore ?? data.averageScore ?? "Unknown"}/100
       **Status**: ${data.status ?? "Unknown"}
       ${data.source ? `**Media Source:** ${data.source}` : "\b"}
@@ -67,13 +73,17 @@ export function AnimeEmbed(data: EmbedFields) {
         : "\b"
     }
     ${
-      data.tags && data.tags.length != 0
-        ? `**Tags:** ${data.tags.filter(tag => tag != null).map(tag => tag?.name).toString()}`
+      data.genres && data.genres.length != 0
+        ? `**Genres:** ${data.genres.toString()}`
         : "\b"
     }
     ${
-      data.genres && data.genres.length != 0
-        ? `**Genres:** ${data.genres.toString()}`
+      data.tags && data.tags.length != 0
+        ? `**Tags:** ${data.tags
+            .filter((tag) => tag != null)
+            .filter((tag) => !tag?.isAdult || !tag.isMediaSpoiler)
+            .map((tag) => tag?.name)
+            .toString()}`
         : "\b"
     }
   `
@@ -108,7 +118,7 @@ export function AnimeEmbed(data: EmbedFields) {
   return { embeds: [embed], components: [component] };
 }
 
-interface EmbedFields {
+interface AnimeFields {
   id: number;
   idMal: number | null;
   title: {
@@ -136,6 +146,13 @@ interface EmbedFields {
     month: number | null;
     year: number | null;
   } | null;
-  tags: ({ name: string } | null)[] | null;
+  tags:
+    | ({
+        name: string;
+        isMediaSpoiler: boolean | null;
+        isAdult: boolean | null;
+      } | null)[]
+    | null;
   genres: (string | null)[] | null;
+  nextAiringEpisode : {episode : number, airingAt : number} | null; 
 }

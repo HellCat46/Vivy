@@ -1,6 +1,7 @@
 import { GraphQLClient } from "graphql-request";
 import { graphql } from "gql.tada";
 
+
 export class AniListClient {
   graphQlClient: GraphQLClient;
   ClientSecret: string;
@@ -71,6 +72,12 @@ export class AniListClient {
               averageScore
               tags {
                 name
+                isMediaSpoiler
+                isAdult
+              }
+              nextAiringEpisode {
+                episode
+                airingAt
               }
             }
           }
@@ -104,11 +111,13 @@ export class AniListClient {
             format_not: $excludeformat
           ) {
             id
+            idMal
+            isAdult
             title {
               english
               native
+              romaji
             }
-            type
             status
             description
             startDate {
@@ -123,18 +132,27 @@ export class AniListClient {
             }
             episodes
             duration
-            countryOfOrigin
             source
             trailer {
               site
+              id
             }
             coverImage {
               extraLarge
+              color
             }
+            bannerImage
             genres
             meanScore
+            averageScore
             tags {
               name
+              isMediaSpoiler
+              isAdult
+            }
+            nextAiringEpisode {
+              episode
+              airingAt
             }
           }
         }
