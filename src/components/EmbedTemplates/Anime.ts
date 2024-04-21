@@ -45,36 +45,33 @@ export function AnimeEmbed(data: AnimeFields) {
       ${
         data.nextAiringEpisode
           ? `__The next episode(Ep. ${data.nextAiringEpisode.episode}) will air <t:${data.nextAiringEpisode.airingAt}:R>__`
-          : "\b"
+          : ""
       }
       **Score**: ${data.meanScore ?? data.averageScore ?? "Unknown"}/100
-      **Status**: ${data.status ?? "Unknown"}
-      ${data.source ? `**Media Source:** ${data.source}` : "\b"}
-      ${data.episodes ? `**Episode Count:** ${data.episodes}` : "\b"}
-      ${data.duration ? `**Episode Duration:** ${data.duration} Minutes` : "\b"}
-      ${
-        data.startDate?.year
-          ? `**Started:** ${
-              data.startDate.month ? `${months[data.startDate.month - 1]}` : ""
-            } ${data.startDate.day ? `${data.startDate.day}, ` : ""}${
-              data.startDate.year
-            }
-            `
-          : "\b"
-      }${
+      **Status**: ${data.status ?? "Unknown"}${
+      data.source ? `**\nMedia Source:** ${data.source}` : ""
+    }${data.episodes ? `\n**Episode Count:** ${data.episodes}` : ""}${
+      data.duration ? `\n**Episode Duration:** ${data.duration} Minutes` : ""
+    }${
+      data.startDate?.year
+        ? `\n**Started:** ${
+            data.startDate.month ? `${months[data.startDate.month - 1]}` : ""
+          } ${data.startDate.day ? `${data.startDate.day}, ` : ""}${
+            data.startDate.year
+          }`
+        : ""
+    }${
       data.endDate?.year
-        ? `**Ended:** ${
+        ? `\n**Ended:** ${
             data.endDate.month ? `${months[data.endDate.month - 1]}` : ""
           } ${data.endDate.day ? `${data.endDate.day}, ` : ""}${
             data.endDate.year
-          }
-            `
-        : "\b"
-    }
-    ${
+          }`
+        : ""
+    }${
       data.genres && data.genres.length != 0
-        ? `**Genres:** ${data.genres.toString()}`
-        : "\b"
+        ? `\n**Genres:** ${data.genres.toString()}`
+        : ""
     }
   `
   );
@@ -137,5 +134,5 @@ interface AnimeFields {
     year: number | null;
   } | null;
   genres: (string | null)[] | null;
-  nextAiringEpisode : {episode : number, airingAt : number} | null; 
+  nextAiringEpisode: { episode: number; airingAt: number } | null;
 }

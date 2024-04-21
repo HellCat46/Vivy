@@ -10,6 +10,7 @@ import path from "path";
 import { AniListClient } from "./components/Clients/AniListClient";
 import { Pool } from "pg";
 import { dbClient } from "./components/Clients/dbClient";
+import { Job } from "node-schedule";
 
 export class Vivy extends Client {
   commands: Collection<
@@ -18,11 +19,13 @@ export class Vivy extends Client {
   >;
   anilistClient: AniListClient;
   dbclient: dbClient;
+  jobManager : Collection<{userId : string,showId : number}, Job>
 
   constructor() {
     super({ intents: [IntentsBitField.Flags.Guilds] });
 
     this.commands = new Collection();
+    this.jobManager = new Collection();
     this.dbclient = new dbClient();
 
     if (process.env.ANILISTSECRET && process.env.ANILISTID)

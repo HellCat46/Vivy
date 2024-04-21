@@ -79,10 +79,11 @@ export class AniListClient {
         }
       `);
       const res = await this.graphQlClient.request(query, {
-        pageNo
+        pageNo,
       });
 
-      if (res.Page?.media && res.Page.media[0]?.isAdult == nsfw) return res.Page.media[0];
+      if (res.Page?.media && res.Page.media[0]?.isAdult == nsfw)
+        return res.Page.media[0];
     }
   }
 
@@ -210,27 +211,33 @@ export class AniListClient {
     return res.Page?.airingSchedules;
   }
 
-  async SearchAnime(name : string, count : number){
-    const query = graphql(`query SearchAnime($name : String, $perPage : Int) {
-      Page(page: 1, perPage: $perPage){
-        media(search: $name, type: ANIME){
-          title {
-            romaji, 
-            english,
-            native
+  async SearchAnime(name: string, count: number) {
+    const query = graphql(`
+      query SearchAnime($name: String, $perPage: Int) {
+        Page(page: 1, perPage: $perPage) {
+          media(search: $name, type: ANIME, isAdult: false) {
+            title {
+              romaji
+              english
+              native
+            }
+            id
           }
-          id
         }
       }
-    }`)
+    `);
 
-    const res = await this.graphQlClient.request(query, {name, perPage: count});
+    const res = await this.graphQlClient.request(query, {
+      name,
+      perPage: count,
+    });
 
     return res.Page?.media;
   }
-  async GetAnime(animeId : number){
+
+  async GetMedia(animeId: number) {
     const query = graphql(`
-      query GetAnime($id: Int) {
+      query GetMedia($id: Int) {
         Media(id: $id) {
           id
           idMal
@@ -275,8 +282,33 @@ export class AniListClient {
       }
     `);
 
-    const res = await this.graphQlClient.request(query, {id: animeId});
+    const res = await this.graphQlClient.request(query, { id: animeId });
 
     return res.Media;
+  }
+
+  async SearchNSFW(name: string, count: number) {
+    const query = graphql(`
+      query SearchAnime($name: String, $perPage: Int) {
+        Page(page: 1, perPage: $perPage) {
+          media(search: $name, isAdult: true) {
+            title {
+              romaji
+              english
+              native
+            }
+            id
+            type
+          }
+        }
+      }
+    `);
+
+    const res = await this.graphQlClient.request(query, {
+      name,
+      perPage: count,
+    });
+
+    return res.Page?.media;
   }
 }
