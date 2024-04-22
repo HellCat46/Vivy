@@ -21,6 +21,8 @@ const months = [
 ];
 
 export function AnimeEmbed(data: AnimeFields) {
+  const langList = getLangList(data);
+
   const embed = new EmbedBuilder()
     .setTitle(
       data.title?.romaji ?? data.title?.english ?? data.title?.native ?? null
@@ -52,6 +54,8 @@ export function AnimeEmbed(data: AnimeFields) {
       data.source ? `**\nMedia Source:** ${data.source}` : ""
     }${data.episodes ? `\n**Episode Count:** ${data.episodes}` : ""}${
       data.duration ? `\n**Episode Duration:** ${data.duration} Minutes` : ""
+    }${
+      langList.length != 0 ?  `\n**Available In:** ${langList.toString()}` : ""
     }${
       data.startDate?.year
         ? `\n**Started:** ${
@@ -105,6 +109,18 @@ export function AnimeEmbed(data: AnimeFields) {
   return { embeds: [embed], components: [component] };
 }
 
+export function getLangList(data : AnimeFields){
+  if(!data.characters?.edges || !data.characters.edges[0]?.voiceActorRoles) return [];
+  
+  const language : string[ ]= [];
+  for(const vaRole of data.characters.edges[0].voiceActorRoles){
+    if(!vaRole?.voiceActor?.language) continue;
+    
+    language.push(" "+vaRole.voiceActor.language);
+  }
+  return language;
+}
+
 interface AnimeFields {
   id: number;
   idMal: number | null;
@@ -135,4 +151,21 @@ interface AnimeFields {
   } | null;
   genres: (string | null)[] | null;
   nextAiringEpisode: { episode: number; airingAt: number } | null;
+  characters: {
+    edges:
+      | ({
+          node: {
+            id: number;
+          } | null;
+          voiceActorRoles:
+            | ({
+                voiceActor: {
+                  language: string | null;
+                } | null;
+              } | null)[]
+            | null;
+        } | null)[]
+      | null;
+
+  } | null;
 }

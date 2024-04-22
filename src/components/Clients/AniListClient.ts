@@ -1,7 +1,6 @@
 import { GraphQLClient } from "graphql-request";
 import { graphql } from "gql.tada";
 
-
 export class AniListClient {
   graphQlClient: GraphQLClient;
   ClientSecret: string;
@@ -74,6 +73,18 @@ export class AniListClient {
                 episode
                 airingAt
               }
+              characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
+                edges {
+                  voiceActorRoles(sort: [RELEVANCE, ID]) {
+                    voiceActor {
+                      language: languageV2
+                    }
+                  }
+                  node {
+                    id
+                  }
+                }
+              }
             }
           }
         }
@@ -144,6 +155,19 @@ export class AniListClient {
             nextAiringEpisode {
               episode
               airingAt
+            }
+            characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
+
+              edges {
+                voiceActorRoles(sort: [RELEVANCE, ID]) {
+                  voiceActor {
+                    language: languageV2
+                  }
+                }
+                node {
+                  id
+                }
+              }
             }
           }
         }
@@ -277,6 +301,20 @@ export class AniListClient {
           nextAiringEpisode {
             episode
             airingAt
+          }
+
+          characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
+
+            edges {
+              voiceActorRoles(sort: [RELEVANCE, ID]) {
+                voiceActor {
+                  language: languageV2
+                }
+              }
+              node {
+                id
+              }
+            }
           }
         }
       }

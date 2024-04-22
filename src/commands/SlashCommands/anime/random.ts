@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { Vivy } from "../../../Vivy";
 import { AnimeEmbed } from "../../../components/EmbedTemplates/Anime";
-import { SimpleError } from "../../../components/EmbedTemplates/Error";
 
 module.exports = {
   data: new SlashCommandBuilder()
