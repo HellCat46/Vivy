@@ -272,7 +272,7 @@ export class AniListClient {
             romaji
           }
           status
-          description
+          description(asHtml: false)
           startDate {
             year
             month
@@ -304,7 +304,6 @@ export class AniListClient {
           }
 
           characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
-
             edges {
               voiceActorRoles(sort: [RELEVANCE, ID]) {
                 voiceActor {

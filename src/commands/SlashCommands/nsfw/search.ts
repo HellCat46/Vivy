@@ -73,9 +73,7 @@ module.exports = {
       });
       return;
     }
-      const res = await GetOpAndEd(media.id);
-      const ReplyObj =
-        res instanceof Error ? AnimeEmbed(media) : AnimeEmbed(media, res);
+      const ReplyObj =AnimeEmbed(media)
 
     await i.editReply(ReplyObj);
   },

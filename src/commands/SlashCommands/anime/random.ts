@@ -13,10 +13,7 @@ module.exports = {
     try {
       const anime = await client.anilistClient.GetRandomAnime(false);
 
-      const res = await GetOpAndEd(anime.id);
-
-      const msgOptions =
-        res instanceof Error ? AnimeEmbed(anime) : AnimeEmbed(anime, res);
+      const msgOptions = AnimeEmbed(anime);
 
       await i.editReply(msgOptions);
     } catch (ex) {

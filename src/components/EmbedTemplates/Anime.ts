@@ -22,10 +22,6 @@ const months = [
 
 export function AnimeEmbed(
   data: AnimeFields,
-  musicData?: {
-    ops: string[];
-    eds: string[];
-  }
 ) {
   const langList = getLangList(data);
 
@@ -38,11 +34,9 @@ export function AnimeEmbed(
     .setImage(data.bannerImage)
     .setTimestamp()
     .setFooter({ text: "Source: Anilist" });
-  const songs = new EmbedBuilder();
 
   if (data.coverImage?.color) {
     embed.setColor(`#${data.coverImage.color.slice(1)}`);
-    songs.setColor(`#${data.coverImage.color.slice(1)}`);
   }
 
   embed.setDescription(
@@ -52,7 +46,13 @@ export function AnimeEmbed(
           ? `**English Title: __${data.title.english}__**`
           : ""
       }
-      ${data.description ?? " "}\n\n\n 
+      ${
+        data.description
+          ? data.description.length > 1000
+            ? data.description.slice(0, 1000) + "..."
+            : data.description
+          : " "
+      }\n\n\n 
       ${
         data.nextAiringEpisode
           ? `__The next episode(Ep. ${data.nextAiringEpisode.episode}) will air <t:${data.nextAiringEpisode.airingAt}:R>__`
@@ -64,7 +64,7 @@ export function AnimeEmbed(
     }${data.episodes ? `\n**Episode Count:** ${data.episodes}` : ""}${
       data.duration ? `\n**Episode Duration:** ${data.duration} Minutes` : ""
     }${
-      langList.length != 0 ? `\n**Available In:** ${langList.toString()}` : ""
+      langList.length != 0 ? `\n**Available In:** ${langList.filter((lang, idx)=> langList.indexOf(lang) === idx).toString()}` : ""
     }${
       data.startDate?.year
         ? `\n**Started:** ${
@@ -88,15 +88,6 @@ export function AnimeEmbed(
     }
   `
   );
-  const songDescription = `${
-    musicData && musicData.ops.length > 0
-      ? `\n\n\n**Opening Music**\n${musicData.ops.join("\n")}`
-      : ""
-  }${
-    musicData && musicData.eds.length > 0
-      ? `\n\n**Closing Music**\n${musicData.eds.join("\n")}`
-      : ""
-  }`;
 
   const component = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
@@ -124,12 +115,9 @@ export function AnimeEmbed(
         .setLabel("Trailer Link")
     );
 
-  const obj = { embeds: [embed], components: [component] };
-  if (songDescription.length != 0) {
-    songs.setDescription(songDescription);
-    obj.embeds.push(songs);
-  }
-  return obj;
+    
+return { embeds: [embed], components: [component] };
+
 }
 
 export function getLangList(data: AnimeFields) {

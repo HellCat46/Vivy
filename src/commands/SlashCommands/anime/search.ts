@@ -76,11 +76,8 @@ module.exports = {
       });
       return;
     }
-      const musicRes = await GetOpAndEd(anime.id);
-      const ReplyObj =
-        musicRes instanceof Error
-          ? AnimeEmbed(anime)
-          : AnimeEmbed(anime, musicRes);
+      
+      const ReplyObj =AnimeEmbed(anime)
     if (!anime.nextAiringEpisode) {
       await i.editReply(ReplyObj);
       return;
@@ -97,6 +94,7 @@ module.exports = {
       })
     );
 
+    
     const res = await (
       await i.editReply(ReplyObj)
     )

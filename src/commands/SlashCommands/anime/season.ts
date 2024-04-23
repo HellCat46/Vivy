@@ -74,9 +74,8 @@ module.exports = {
     for (const anime of animes) {
       if (anime == null) continue;
 
-      const res = await GetOpAndEd(anime.id);
-      const obj =
-        res instanceof Error ? AnimeEmbed(anime) : AnimeEmbed(anime, res);
+      
+      const obj = AnimeEmbed(anime);
       msgObjects.push({ embed: obj.embeds[0], component: obj.components[0] });
     }
 
