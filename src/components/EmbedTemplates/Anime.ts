@@ -20,7 +20,13 @@ const months = [
   "Dec",
 ];
 
-export function AnimeEmbed(data: AnimeFields) {
+export function AnimeEmbed(
+  data: AnimeFields,
+  musicData?: {
+    ops: string[];
+    eds: string[];
+  }
+) {
   const langList = getLangList(data);
 
   const embed = new EmbedBuilder()
@@ -32,9 +38,12 @@ export function AnimeEmbed(data: AnimeFields) {
     .setImage(data.bannerImage)
     .setTimestamp()
     .setFooter({ text: "Source: Anilist" });
+  const songs = new EmbedBuilder();
 
-  if (data.coverImage?.color)
+  if (data.coverImage?.color) {
     embed.setColor(`#${data.coverImage.color.slice(1)}`);
+    songs.setColor(`#${data.coverImage.color.slice(1)}`);
+  }
 
   embed.setDescription(
     ` 
@@ -55,7 +64,7 @@ export function AnimeEmbed(data: AnimeFields) {
     }${data.episodes ? `\n**Episode Count:** ${data.episodes}` : ""}${
       data.duration ? `\n**Episode Duration:** ${data.duration} Minutes` : ""
     }${
-      langList.length != 0 ?  `\n**Available In:** ${langList.toString()}` : ""
+      langList.length != 0 ? `\n**Available In:** ${langList.toString()}` : ""
     }${
       data.startDate?.year
         ? `\n**Started:** ${
@@ -79,6 +88,15 @@ export function AnimeEmbed(data: AnimeFields) {
     }
   `
   );
+  const songDescription = `${
+    musicData && musicData.ops.length > 0
+      ? `\n\n\n**Opening Music**\n${musicData.ops.join("\n")}`
+      : ""
+  }${
+    musicData && musicData.eds.length > 0
+      ? `\n\n**Closing Music**\n${musicData.eds.join("\n")}`
+      : ""
+  }`;
 
   const component = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
@@ -106,17 +124,23 @@ export function AnimeEmbed(data: AnimeFields) {
         .setLabel("Trailer Link")
     );
 
-  return { embeds: [embed], components: [component] };
+  const obj = { embeds: [embed], components: [component] };
+  if (songDescription.length != 0) {
+    songs.setDescription(songDescription);
+    obj.embeds.push(songs);
+  }
+  return obj;
 }
 
-export function getLangList(data : AnimeFields){
-  if(!data.characters?.edges || !data.characters.edges[0]?.voiceActorRoles) return [];
-  
-  const language : string[ ]= [];
-  for(const vaRole of data.characters.edges[0].voiceActorRoles){
-    if(!vaRole?.voiceActor?.language) continue;
-    
-    language.push(" "+vaRole.voiceActor.language);
+export function getLangList(data: AnimeFields) {
+  if (!data.characters?.edges || !data.characters.edges[0]?.voiceActorRoles)
+    return [];
+
+  const language: string[] = [];
+  for (const vaRole of data.characters.edges[0].voiceActorRoles) {
+    if (!vaRole?.voiceActor?.language) continue;
+
+    language.push(" " + vaRole.voiceActor.language);
   }
   return language;
 }
@@ -166,6 +190,5 @@ interface AnimeFields {
             | null;
         } | null)[]
       | null;
-
   } | null;
 }

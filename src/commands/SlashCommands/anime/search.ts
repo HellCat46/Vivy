@@ -12,6 +12,7 @@ import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 import { AnimeEmbed } from "../../../components/EmbedTemplates/Anime";
 import { scheduleJob } from "node-schedule";
+import { GetOpAndEd } from "../../../components/ApiRequests";
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -75,8 +76,11 @@ module.exports = {
       });
       return;
     }
-
-    const ReplyObj = AnimeEmbed(anime);
+      const musicRes = await GetOpAndEd(anime.id);
+      const ReplyObj =
+        musicRes instanceof Error
+          ? AnimeEmbed(anime)
+          : AnimeEmbed(anime, musicRes);
     if (!anime.nextAiringEpisode) {
       await i.editReply(ReplyObj);
       return;

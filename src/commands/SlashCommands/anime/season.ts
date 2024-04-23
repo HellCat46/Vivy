@@ -10,6 +10,7 @@ import {
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 import { AnimeEmbed } from "../../../components/EmbedTemplates/Anime";
+import { GetOpAndEd } from "../../../components/ApiRequests";
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -73,17 +74,37 @@ module.exports = {
     for (const anime of animes) {
       if (anime == null) continue;
 
-      const obj =AnimeEmbed(anime);
-      msgObjects.push({embed : obj.embeds[0], component: obj.components[0]});
+      const res = await GetOpAndEd(anime.id);
+      const obj =
+        res instanceof Error ? AnimeEmbed(anime) : AnimeEmbed(anime, res);
+      msgObjects.push({ embed: obj.embeds[0], component: obj.components[0] });
     }
 
-    const pageMove = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId("back").setLabel("Back").setStyle(ButtonStyle.Primary), new ButtonBuilder().setCustomId("next").setLabel("Next").setStyle(ButtonStyle.Primary));
+    const pageMove = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId("back")
+        .setLabel("Back")
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId("next")
+        .setLabel("Next")
+        .setStyle(ButtonStyle.Primary)
+    );
 
     let pageNo = 0;
-    const collector = (await i.editReply({ embeds: [msgObjects[pageNo].embed], components :  [msgObjects[pageNo].component, pageMove]})).createMessageComponentCollector({time: 300_000, filter: int => int.user.id === i.user.id, componentType: ComponentType.Button});
+    const collector = (
+      await i.editReply({
+        embeds: [msgObjects[pageNo].embed],
+        components: [msgObjects[pageNo].component, pageMove],
+      })
+    ).createMessageComponentCollector({
+      time: 300_000,
+      filter: (int) => int.user.id === i.user.id,
+      componentType: ComponentType.Button,
+    });
 
     collector.on("collect", (int) => {
-      if (int.customId === "next" && pageNo+1 < msgObjects.length) {
+      if (int.customId === "next" && pageNo + 1 < msgObjects.length) {
         pageNo++;
         int.update({
           embeds: [msgObjects[pageNo].embed],
@@ -100,9 +121,9 @@ module.exports = {
 
     collector.on("end", () => {
       i.editReply({
-          embeds: [msgObjects[pageNo].embed],
-          components: [msgObjects[pageNo].component],
-        });
+        embeds: [msgObjects[pageNo].embed],
+        components: [msgObjects[pageNo].component],
+      });
     });
   },
 };

@@ -6,6 +6,7 @@ import {
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 import { AnimeEmbed } from "../../../components/EmbedTemplates/Anime";
+import { GetOpAndEd } from "../../../components/ApiRequests";
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -72,8 +73,9 @@ module.exports = {
       });
       return;
     }
-
-    const ReplyObj = AnimeEmbed(media);
+      const res = await GetOpAndEd(media.id);
+      const ReplyObj =
+        res instanceof Error ? AnimeEmbed(media) : AnimeEmbed(media, res);
 
     await i.editReply(ReplyObj);
   },
