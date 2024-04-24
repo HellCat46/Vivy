@@ -5,15 +5,14 @@ import {
   ChatInputCommandInteraction,
   ComponentType,
   EmbedBuilder,
-  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 import { AnimeEmbed } from "../../../components/EmbedTemplates/Anime";
-import { GetOpAndEd } from "../../../components/ApiRequests";
 
 module.exports = {
-  data: new SlashCommandBuilder()
+  data: new SlashCommandSubcommandBuilder()
     .setName("season")
     .setDescription("Get List of Anime Airing in specific Season")
     .addStringOption((option) =>
@@ -74,7 +73,6 @@ module.exports = {
     for (const anime of animes) {
       if (anime == null) continue;
 
-      
       const obj = AnimeEmbed(anime);
       msgObjects.push({ embed: obj.embeds[0], component: obj.components[0] });
     }

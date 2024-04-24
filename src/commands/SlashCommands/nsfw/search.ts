@@ -1,18 +1,16 @@
 import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
-  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 import { AnimeEmbed } from "../../../components/EmbedTemplates/Anime";
-import { GetOpAndEd } from "../../../components/ApiRequests";
 
 module.exports = {
-  data: new SlashCommandBuilder()
+  data: new SlashCommandSubcommandBuilder()
     .setName("searchnsfw")
     .setDescription("Search for a NSFW Anime/Manga")
-    .setNSFW(true)
     .addStringOption((option) =>
       option
         .setName("name")
@@ -73,7 +71,7 @@ module.exports = {
       });
       return;
     }
-      const ReplyObj =AnimeEmbed(media)
+    const ReplyObj = AnimeEmbed(media);
 
     await i.editReply(ReplyObj);
   },

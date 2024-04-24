@@ -6,16 +6,25 @@ module.exports = {
   once: false,
   async execute(client: Vivy, i: Interaction) {
     try {
-      if (i.isChatInputCommand()) {
+      
+      if (i.isChatInputCommand() && i.options.getSubcommand()) {
         const command = client.commands.get(i.commandName);
         if (!command) return;
 
-        await command.execute(client, i);
+        const subCommand = command.subCommands.get(i.options.getSubcommand())
+        if(!subCommand) return
+
+        await subCommand.execute(client, i);
       } else if (i.isAutocomplete()) {
         const command = client.commands.get(i.commandName);
-        if (!command || !command.autocomplete) return;
+        if (!command) return;
+
+
+        const subCommand = command.subCommands.get(i.options.getSubcommand());
+        if (!subCommand || !subCommand.autocomplete) return;
+
         
-        await command.autocomplete(client, i);
+        await subCommand.autocomplete(client, i);
       }
     } catch (ex) {
       console.error(ex);

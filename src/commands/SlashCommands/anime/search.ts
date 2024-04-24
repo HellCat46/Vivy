@@ -6,16 +6,15 @@ import {
   ChatInputCommandInteraction,
   ComponentType,
   EmbedBuilder,
-  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 import { AnimeEmbed } from "../../../components/EmbedTemplates/Anime";
 import { scheduleJob } from "node-schedule";
-import { GetOpAndEd } from "../../../components/ApiRequests";
 
 module.exports = {
-  data: new SlashCommandBuilder()
+  data: new SlashCommandSubcommandBuilder()
     .setName("search")
     .setDescription("Search for an anime")
     .addStringOption((option) =>
@@ -76,8 +75,8 @@ module.exports = {
       });
       return;
     }
-      
-      const ReplyObj =AnimeEmbed(anime)
+
+    const ReplyObj = AnimeEmbed(anime);
     if (!anime.nextAiringEpisode) {
       await i.editReply(ReplyObj);
       return;
@@ -94,7 +93,6 @@ module.exports = {
       })
     );
 
-    
     const res = await (
       await i.editReply(ReplyObj)
     )
@@ -113,8 +111,7 @@ module.exports = {
     }
     res.update(ReplyObj);
 
-    
-    if (client.jobManager.get({userId: i.user.id, showId: anime.id})) {
+    if (client.jobManager.get({ userId: i.user.id, showId: anime.id })) {
       await i.followUp({
         embeds: [
           SimpleError(
@@ -170,7 +167,7 @@ module.exports = {
       return;
     }
 
-    client.jobManager.set({userId: i.user.id, showId: anime.id}, job);
+    client.jobManager.set({ userId: i.user.id, showId: anime.id }, job);
     console.log(client.jobManager.keys());
   },
 };

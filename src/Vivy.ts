@@ -5,7 +5,7 @@ import {
   Routes,
   SlashCommandBuilder,
 } from "discord.js";
-import { readdirSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import path from "path";
 import { AniListClient } from "./components/Clients/AniListClient";
 import { Pool } from "pg";
@@ -15,11 +15,17 @@ import { Job } from "node-schedule";
 export class Vivy extends Client {
   commands: Collection<
     string,
-    { data: SlashCommandBuilder; execute: Function, autocomplete ?: Function}
+    {
+      data: SlashCommandBuilder;
+      subCommands: Collection<
+        string,
+        { execute: Function; autocomplete?: Function }
+      >;
+    }
   >;
   anilistClient: AniListClient;
   dbclient: dbClient;
-  jobManager : Collection<{userId : string,showId : number}, Job>
+  jobManager: Collection<{ userId: string; showId: number }, Job>;
 
   constructor() {
     super({ intents: [IntentsBitField.Flags.Guilds] });
@@ -73,21 +79,44 @@ export class Vivy extends Client {
 
     for (const folder of commandFolders) {
       const FolderPath = path.join(basePath, folder);
-      const commandFiles = readdirSync(FolderPath).filter((f) =>
-        f.endsWith(".js")
+      const commandFiles = readdirSync(FolderPath).filter(
+        (f) => f.endsWith(".js") && !f.startsWith("_")
       );
 
+      const baseCommandPath = path.join(FolderPath, "_base.js");
+      if (!existsSync(baseCommandPath)) {
+        console.log(`Base file is required. Skipping Folder ${folder}...`);
+        continue;
+      }
+      const baseCommand: {
+        data: SlashCommandBuilder;
+      } = require(baseCommandPath);
+      if (!("data" in baseCommand)) {
+        console.log(
+          `Data field in Base File is required. Skipping Folder ${folder}...`
+        );
+        continue;
+      }
+
+      const subCommandFunctions: Collection<
+        string,
+        { execute: Function; autocomplete?: Function }
+      > = new Collection();
       for (const file of commandFiles) {
         const filePath = path.join(FolderPath, file);
 
         delete require.cache[require.resolve(filePath)];
-        const command = require(filePath);
-        if ("data" in command && "execute" in command) {
-          commands.set(command.data.name, command);
+        const subCommand = require(filePath);
+        if ("data" in subCommand && "execute" in subCommand) {
+          baseCommand.data.addSubcommand(subCommand.data);
+          subCommandFunctions.set(subCommand.data.name, subCommand)
         } else {
-          console.warn(`${file} is missing one of the required properties`);
+          console.warn(
+            `${folder}/${file} is missing one of the required properties`
+          );
         }
       }
+      commands.set(baseCommand.data.name, {data: baseCommand.data, subCommands: subCommandFunctions});
     }
 
     this.commands = commands;

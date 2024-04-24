@@ -7,14 +7,14 @@ import {
   ChatInputCommandInteraction,
   ComponentType,
   EmbedBuilder,
-  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 import { GetOpAndEd } from "../../../components/ApiRequests";
 
 module.exports = {
-  data: new SlashCommandBuilder()
+  data: new SlashCommandSubcommandBuilder()
     .setName("getmusic")
     .setDescription("Get List of Anime Opening and Ending Music")
     .addStringOption((option) =>

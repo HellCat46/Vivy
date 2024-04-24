@@ -1,13 +1,13 @@
 import {
   ChatInputCommandInteraction,
   EmbedBuilder,
-  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 
 module.exports = {
-  data: new SlashCommandBuilder()
+  data: new SlashCommandSubcommandBuilder()
     .setName("today")
     .setDescription("List of Anime Airing Today"),
   async execute(client: Vivy, i: ChatInputCommandInteraction) {
@@ -37,14 +37,14 @@ module.exports = {
 
       if (!anime || !animeEngName || !animeNatName) continue;
 
-
       embed.addFields({
         name: animeNatName,
-        value: `**__Episode ${anime.episode} will air in <t:${Math.floor(Date.now()/1000) + anime.timeUntilAiring}:R> at <t:${anime.airingAt}:t>__**`,
+        value: `**__Episode ${anime.episode} will air in <t:${
+          Math.floor(Date.now() / 1000) + anime.timeUntilAiring
+        }:R> at <t:${anime.airingAt}:t>__**`,
       });
     }
 
-
-    await i.editReply({embeds : [embed]});
+    await i.editReply({ embeds: [embed] });
   },
 };
