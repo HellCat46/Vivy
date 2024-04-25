@@ -1,4 +1,5 @@
 import {
+  ApplicationCommandOptionType,
   Client,
   Collection,
   IntentsBitField,
@@ -8,23 +9,16 @@ import {
 import { existsSync, readdirSync } from "fs";
 import path from "path";
 import { AniListClient } from "./components/Clients/AniListClient";
-import { Pool } from "pg";
-import { dbClient } from "./components/Clients/dbClient";
 import { Job } from "node-schedule";
 
 export class Vivy extends Client {
-  commands: Collection<
+  commands: Collection<string, BaseCommand>;
+  accessTokens: Collection<
     string,
-    {
-      data: SlashCommandBuilder;
-      subCommands: Collection<
-        string,
-        { execute: Function; autocomplete?: Function }
-      >;
-    }
+    { access_token: string; expires_at: number }
   >;
+  suggestions : Collection<string, {animeId: number, suggestedAt : number}[]>
   anilistClient: AniListClient;
-  dbclient: dbClient;
   jobManager: Collection<{ userId: string; showId: number }, Job>;
 
   constructor() {
@@ -32,7 +26,8 @@ export class Vivy extends Client {
 
     this.commands = new Collection();
     this.jobManager = new Collection();
-    this.dbclient = new dbClient();
+    this.accessTokens = new Collection();
+    this.suggestions = new Collection();
 
     if (process.env.ANILISTSECRET && process.env.ANILISTID)
       this.anilistClient = new AniListClient(
@@ -54,7 +49,7 @@ export class Vivy extends Client {
     const commandData: SlashCommandBuilder[] = [];
 
     for (const command of this.commands.values()) {
-      commandData.push(command.data);
+      commandData.push(command.baseCommand.data);
     }
 
     console.log(
@@ -90,6 +85,8 @@ export class Vivy extends Client {
       }
       const baseCommand: {
         data: SlashCommandBuilder;
+        execute: Function;
+        autocomplete?: Function;
       } = require(baseCommandPath);
       if (!("data" in baseCommand)) {
         console.log(
@@ -109,14 +106,17 @@ export class Vivy extends Client {
         const subCommand = require(filePath);
         if ("data" in subCommand && "execute" in subCommand) {
           baseCommand.data.addSubcommand(subCommand.data);
-          subCommandFunctions.set(subCommand.data.name, subCommand)
+          subCommandFunctions.set(subCommand.data.name, subCommand);
         } else {
           console.warn(
             `${folder}/${file} is missing one of the required properties`
           );
         }
       }
-      commands.set(baseCommand.data.name, {data: baseCommand.data, subCommands: subCommandFunctions});
+      commands.set(baseCommand.data.name, {
+        baseCommand: baseCommand,
+        subCommands: subCommandFunctions,
+      });
     }
 
     this.commands = commands;
@@ -137,4 +137,17 @@ export class Vivy extends Client {
       }
     }
   }
+}
+
+
+export interface BaseCommand {
+  baseCommand: {
+    data: SlashCommandBuilder;
+    execute: Function;
+    autocomplete?: Function;
+  };
+  subCommands: Collection<
+    string,
+    { execute: Function; autocomplete?: Function }
+  >;
 }

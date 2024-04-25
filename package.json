@@ -16,8 +16,7 @@
     "gql.tada": "^1.5.4",
     "graphql": "^16.8.1",
     "graphql-request": "^6.1.0",
-    "node-schedule": "^2.1.1",
-    "pg": "^8.11.5"
+    "node-schedule": "^2.1.1"
   },
   "devDependencies": {
     "@0no-co/graphqlsp": "^1.10.1",

@@ -11,20 +11,12 @@ module.exports = {
         const command = client.commands.get(i.commandName);
         if (!command) return;
 
-        const subCommand = command.subCommands.get(i.options.getSubcommand())
-        if(!subCommand) return
-
-        await subCommand.execute(client, i);
+        command.baseCommand.execute(command, client, i);
       } else if (i.isAutocomplete()) {
         const command = client.commands.get(i.commandName);
-        if (!command) return;
+        if (!command || !command.baseCommand.autocomplete) return;
 
-
-        const subCommand = command.subCommands.get(i.options.getSubcommand());
-        if (!subCommand || !subCommand.autocomplete) return;
-
-        
-        await subCommand.autocomplete(client, i);
+        await command.baseCommand.autocomplete(command, client, i);
       }
     } catch (ex) {
       console.error(ex);

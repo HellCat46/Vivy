@@ -12,6 +12,7 @@ import {
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
 import { GetOpAndEd } from "../../../components/ApiRequests";
+import { EmbedPagnination } from "../../../components/Pagination";
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -125,47 +126,15 @@ module.exports = {
         } `,
       };
     }
-    pageNo = 0;
 
-    const embed = new EmbedBuilder().setTitle(`Music Theme of ${MusicInfo.anime[0].name}`).setColor("Random").setTimestamp().setFooter({text: "Source: AnimeThemes.moe"}).setFields(pages[pageNo]);
-    const pageMove = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId("prev")
-        .setLabel("Prev")
-        .setStyle(ButtonStyle.Primary),
-      new ButtonBuilder()
-        .setCustomId("next")
-        .setLabel("Next")
-        .setStyle(ButtonStyle.Primary)
+    await EmbedPagnination(
+      i,
+      new EmbedBuilder()
+        .setTitle(`Music Theme of ${MusicInfo.anime[0].name}`)
+        .setColor("Random")
+        .setTimestamp()
+        .setFooter({ text: "Source: AnimeThemes.moe" }),
+      pages
     );
-
-    if(pages.length === 1){
-        await i.editReply({embeds: [embed]});
-        return;
-    }
-
-
-    const collector = (
-      await i.editReply({ embeds: [embed], components: [pageMove] })
-    ).createMessageComponentCollector({
-      time: 60_000,
-      filter: (inter) => i.user.id === inter.user.id,
-      componentType: ComponentType.Button,
-    });
-
-    collector.on("collect", (inter) => {
-      if (inter.customId == "prev" && pageNo != 0) {
-        pageNo--;
-        embed.setFields(pages[pageNo]);
-        inter.update({ embeds: [embed] });
-      } else if (inter.customId == "next" && pageNo + 1 < pages.length) {
-        pageNo++;
-        embed.setFields(pages[pageNo]);
-        inter.update({ embeds: [embed] });
-      }
-    });
-    collector.once("end", () => {
-      i.editReply({ components: [] });
-    });
   },
 };
