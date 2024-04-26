@@ -75,6 +75,17 @@ module.exports = {
       return;
     }
 
+    const accessToken = client.accessTokens.get(user.id);
+    if(!accessToken){
+      await i.editReply({
+        embeds: [
+          SimpleError(`Unable to find user data. Please ask ${user.globalName} to login.`)
+        ]
+      })
+      return;
+    }
+
+
     let animeId: number;
     if (!animeValue.startsWith("Id-")) {
       const anime = await client.anilistClient.SearchAnime(animeValue, 1);
@@ -148,6 +159,12 @@ module.exports = {
 
     if (Resp.customId !== "yes") return;
 
+    const isAlreadyWatched = await client.anilistClient.GetAlreadyWatched(accessToken.access_token, animeId, accessToken.userId);
+    if(isAlreadyWatched !== false){
+      await Resp.editReply({embeds: [SimpleError("User has already watched this anime.")]});
+      return;
+    }
+
     const suggestions = client.suggestions.get(user.id);
 
     if (!suggestions)
@@ -167,7 +184,5 @@ module.exports = {
           ),
       ],
     });
-
-    console.log(client.suggestions.get(user.id));
   },
 };

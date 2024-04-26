@@ -157,7 +157,6 @@ export class AniListClient {
               airingAt
             }
             characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
-
               edges {
                 voiceActorRoles(sort: [RELEVANCE, ID]) {
                   voiceActor {
@@ -347,5 +346,67 @@ export class AniListClient {
     });
 
     return res.Page?.media;
+  }
+
+  async GetAlreadyWatched(
+    accessToken: string,
+    animeId: number,
+    userId: number
+  ) {
+    const query = graphql(`
+      query GetAlreadyWatched($userId: Int, $animeId: Int) {
+        MediaList(mediaId: $animeId, userId: $userId, type: ANIME) {
+          id
+        }
+      }
+    `);
+
+
+    const res = await this.graphQlClient.request(
+      query,
+      {
+        userId: userId,
+        animeId: animeId,
+      },
+      {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      }
+    ).catch(()=> false);
+
+    return res;
+  }
+
+  async AddToWatchlist(accessToken: string, animeId: number) {
+    const query = graphql(`
+      mutation AddToWatchList($animeId: Int, $startedAt: FuzzyDateInput) {
+        SaveMediaListEntry(
+          mediaId: $animeId
+          status: CURRENT
+          startedAt: $startedAt
+        ) {
+          mediaId
+          status
+          startedAt {
+            day
+            month
+            year
+          }
+        }
+      }
+    `);
+
+    const date = new Date();
+    const res = this.graphQlClient.request(query, {
+      animeId,
+      startedAt: {
+        day: date.getDate(),
+        month: date.getMonth(),
+        year: date.getFullYear(),
+      },
+    });
+
+    return res;
   }
 }

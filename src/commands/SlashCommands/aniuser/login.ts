@@ -12,6 +12,7 @@ import {
 } from "discord.js";
 import { Vivy } from "../../../Vivy";
 import { SimpleError } from "../../../components/EmbedTemplates/Error";
+import { decodeJwt } from "jose";
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -121,9 +122,12 @@ module.exports = {
       const response: { expires_in: number; access_token: string } =
         await getAccessToken.json();
 
-      console.log(Date.now() + response.expires_in * 1000);
+        const jwtPayload = decodeJwt(response.access_token)
+        if(typeof jwtPayload.sub !== "string") throw new Error();
+
       client.accessTokens.set(i.user.id, {
         access_token: response.access_token,
+        userId: parseInt(jwtPayload.sub),
         expires_at: Date.now() + response.expires_in * 1000,
       });
       await Res.editReply({

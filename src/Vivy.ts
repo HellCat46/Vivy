@@ -15,7 +15,7 @@ export class Vivy extends Client {
   commands: Collection<string, BaseCommand>;
   accessTokens: Collection<
     string,
-    { access_token: string; expires_at: number }
+    { access_token: string; userId: number, expires_at: number }
   >;
   suggestions : Collection<string, {animeId: number, suggestedAt : number}[]>
   anilistClient: AniListClient;
