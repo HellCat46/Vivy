@@ -56,6 +56,8 @@ module.exports = {
     await i.deferReply({ ephemeral: true });
     const user = i.options.getUser("user", true);
     const animeValue = i.options.getString("animename", true);
+    const suggestions = client.suggestions.get(user.id);
+    const accessToken = client.accessTokens.get(user.id);
 
     if (user.id === i.user.id) {
       await i.editReply({
@@ -64,27 +66,36 @@ module.exports = {
       return;
     }
 
-    try {
-      await i.guild?.members.fetch(user);
-    } catch (ex) {
+    if (!accessToken) {
       await i.editReply({
         embeds: [
-          SimpleError("Unable to find user in this guild."),
+          SimpleError(
+            `Unable to find user data. Please ask ${user.globalName} to login.`
+          ),
         ],
       });
       return;
     }
 
-    const accessToken = client.accessTokens.get(user.id);
-    if(!accessToken){
+    if (suggestions && suggestions.length >= 25) {
       await i.editReply({
         embeds: [
-          SimpleError(`Unable to find user data. Please ask ${user.globalName} to login.`)
-        ]
-      })
+          SimpleError(
+            `User ${user.globalName} has reached maximum suggestions limit.`
+          ),
+        ],
+      });
       return;
     }
 
+    try {
+      await i.guild?.members.fetch(user);
+    } catch (ex) {
+      await i.editReply({
+        embeds: [SimpleError("Unable to find user in this guild.")],
+      });
+      return;
+    }
 
     let animeId: number;
     if (!animeValue.startsWith("Id-")) {
@@ -159,18 +170,45 @@ module.exports = {
 
     if (Resp.customId !== "yes") return;
 
-    const isAlreadyWatched = await client.anilistClient.GetAlreadyWatched(accessToken.access_token, animeId, accessToken.userId);
-    if(isAlreadyWatched !== false){
-      await Resp.editReply({embeds: [SimpleError("User has already watched this anime.")]});
+    const isAlreadyWatched = await client.anilistClient.GetAlreadyWatched(
+      accessToken.access_token,
+      animeId,
+      accessToken.userId
+    );
+    if (isAlreadyWatched !== false) {
+      await Resp.editReply({
+        embeds: [SimpleError("User has already watched this anime.")],
+      });
       return;
     }
 
-    const suggestions = client.suggestions.get(user.id);
-
     if (!suggestions)
-      client.suggestions.set(user.id, [{ animeId, suggestedAt: Date.now() }]);
-    else if(suggestions.filter(suggestion => suggestion.animeId === animeId).length === 0) {
-      suggestions.push({ animeId, suggestedAt: Date.now() });
+      client.suggestions.set(user.id, [
+        {
+          animeId,
+          animeName:
+            AnimeInfo.title?.romaji ??
+            AnimeInfo.title?.english ??
+            AnimeInfo.title?.native ??
+            "",
+          suggestedAt: Date.now(),
+          suggestedBy: i.user.id,
+        },
+      ]);
+    else if (
+      suggestions.filter((suggestion) => suggestion.animeId === animeId)
+        .length === 0
+    ) {
+      suggestions.push({
+        animeId,
+        animeName:
+          AnimeInfo.title?.romaji ??
+          AnimeInfo.title?.english ??
+          AnimeInfo.title?.native ??
+          "",
+        suggestedAt: Date.now(),
+        suggestedBy: i.user.id,
+      });
       client.suggestions.set(user.id, suggestions);
     }
 

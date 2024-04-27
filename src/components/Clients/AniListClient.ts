@@ -323,6 +323,73 @@ export class AniListClient {
     return res.Media;
   }
 
+  async GetMediaList(animeIds: number[]){
+    const query = graphql(`
+      query GetMediaList($ids: [Int]) {
+        Page(perPage: 25, page: 1) {
+          media(id_in: $ids) {
+            id
+            idMal
+            isAdult
+            title {
+              english
+              native
+              romaji
+            }
+            status
+            description(asHtml: false)
+            startDate {
+              year
+              month
+              day
+            }
+            endDate {
+              year
+              month
+              day
+            }
+            episodes
+            duration
+            source
+            trailer {
+              site
+              id
+            }
+            coverImage {
+              extraLarge
+              color
+            }
+            bannerImage
+            genres
+            meanScore
+            averageScore
+            nextAiringEpisode {
+              episode
+              airingAt
+            }
+
+            characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
+              edges {
+                voiceActorRoles(sort: [RELEVANCE, ID]) {
+                  voiceActor {
+                    language: languageV2
+                  }
+                }
+                node {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    `);
+
+    const res = await this.graphQlClient.request(query, {ids: animeIds});
+
+    return res;
+  }
+
   async SearchNSFW(name: string, count: number) {
     const query = graphql(`
       query SearchAnime($name: String, $perPage: Int) {
@@ -405,7 +472,11 @@ export class AniListClient {
         month: date.getMonth(),
         year: date.getFullYear(),
       },
-    });
+    }, {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      });
 
     return res;
   }

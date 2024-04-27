@@ -100,27 +100,35 @@ module.exports = {
       componentType: ComponentType.Button,
     });
 
-    collector.on("collect", (int) => {
+    collector.on("collect",async (int) => {
+      try {
       if (int.customId === "next" && pageNo + 1 < msgObjects.length) {
         pageNo++;
-        int.update({
+        await int.update({
           embeds: [msgObjects[pageNo].embed],
           components: [msgObjects[pageNo].component, pageMove],
         });
       } else if (int.customId === "back" && pageNo > 0) {
         pageNo--;
-        int.update({
+        await int.update({
           embeds: [msgObjects[pageNo].embed],
           components: [msgObjects[pageNo].component, pageMove],
         });
       }
+      }catch(ex){
+        console.error(ex);
+      }
     });
 
-    collector.on("end", () => {
-      i.editReply({
+    collector.once("end",async () => {
+      try {
+      await i.editReply({
         embeds: [msgObjects[pageNo].embed],
         components: [msgObjects[pageNo].component],
       });
+      }catch(ex){
+        console.error(ex);
+      }
     });
   },
 };

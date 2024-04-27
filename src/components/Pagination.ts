@@ -37,18 +37,22 @@ export async function EmbedPagnination(i: ChatInputCommandInteraction, embed: Em
     componentType: ComponentType.Button,
   });
 
-  collector.on("collect", (inter) => {
+  collector.on("collect", async (inter) => {
+    try {
     if (inter.customId == "prev" && pageNo != 0) {
       pageNo--;
       embed.setFields(pages[pageNo]);
-      inter.update({ embeds: [embed] });
+      await inter.update({ embeds: [embed] });
     } else if (inter.customId == "next" && pageNo + 1 < pages.length) {
       pageNo++;
       embed.setFields(pages[pageNo]);
-      inter.update({ embeds: [embed] });
+      await inter.update({ embeds: [embed] });
+    }
+    }catch(ex){
+      console.error(ex);
     }
   });
-  collector.once("end", () => {
-    i.editReply({ components: [] });
+  collector.once("end", async () => {
+    if(!(await i.editReply({ components: [] }).catch(() => null))) return;
   });
 }
