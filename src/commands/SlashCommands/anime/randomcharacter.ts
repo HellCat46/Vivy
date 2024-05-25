@@ -34,7 +34,7 @@ module.exports = {
                 : ""
             }${character?.description ?? ""} ` // One White is required in case all the fields were null or empty
           )
-          .setThumbnail(character?.image?.large ?? null)
+          .setImage(character?.image?.large ?? null)
           .setTimestamp()
           .setURL(character?.siteUrl ?? null),
       ],
