@@ -4,6 +4,8 @@ import {
 } from "discord.js";
 import { Vivy } from "../../../Vivy";
 import { EmbedBuilder } from "@discordjs/builders";
+import { CharacterEmbed } from "../../../components/EmbedTemplates/Anime";
+import { SimpleError } from "../../../components/EmbedTemplates/Error";
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -13,30 +15,15 @@ module.exports = {
     await interaction.deferReply();
 
     const character = await client.anilistClient.GetRandomCharacter();
+    if(!character){
+      await interaction.editReply({embeds: [SimpleError("Unable to fetch Character Info.")]});
+      return;
+    }
 
 
     await interaction.editReply({
       embeds: [
-        new EmbedBuilder()
-          .setTitle(character?.name?.full ?? character?.name?.native ?? null)
-          .setDescription(
-            `${
-              character?.name?.alternative?.at(0)
-                ? "**Alternative Title:** " +
-                  character.name.alternative.join(", ") +
-                  "\n"
-                : ""
-            }${
-              character?.name?.alternativeSpoiler?.at(0)
-                ? "**Spoiler Title:** ||" +
-                  character.name.alternativeSpoiler.join(", ") +
-                  "||\n"
-                : ""
-            }${character?.description ?? ""} ` // One White is required in case all the fields were null or empty
-          )
-          .setImage(character?.image?.large ?? null)
-          .setTimestamp()
-          .setURL(character?.siteUrl ?? null),
+        CharacterEmbed(character)
       ],
     });
   },

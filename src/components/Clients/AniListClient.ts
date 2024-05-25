@@ -11,7 +11,6 @@ export class AniListClient {
     this.ClientId = ClientId;
   }
 
-  
   async GetRandomAnime(nsfw: boolean) {
     while (true) {
       const countQuery = graphql(`
@@ -53,25 +52,123 @@ export class AniListClient {
     }
   }
 
-
-
-  async GetRandomCharacter(){
-    const countQuery = graphql(`
-        query Count {
-          SiteStatistics {
-            characters(perPage: 1, sort: COUNT_DESC) {
-              nodes {
-                count
+  async GetRandomCharacterFromList(
+    userId: number,
+    mediaType: "ANIME" | "MANGA"
+  ) {
+    const getCharIdsQuery = graphql(`
+      query CharIds($userId: Int, $mediaType: MediaType) {
+        MediaListCollection(userId: $userId, type: $mediaType) {
+          lists {
+            entries {
+              media {
+                characters {
+                  nodes {
+                    id
+                  }
+                }
               }
             }
           }
         }
-      `);
-    const countRes = (await this.graphQlClient.request(countQuery)).SiteStatistics?.characters?.nodes?.at(0)?.count;
-    if(!countRes) throw  Error("Unable to get Character Count");
+      }
+    `);
+    const getCharIds = await this.graphQlClient.request(getCharIdsQuery, {
+      userId,
+      mediaType,
+    });
+    // Three things will need to select randomly: List, Media and Character
+    if (!getCharIds.MediaListCollection?.lists)
+      return Error("User doesn't have any List.");
 
-    const pageNo = Math.floor(Math.random()* countRes)
+    // First: The List will be selected below
+    getCharIds.MediaListCollection.lists =
+      getCharIds.MediaListCollection.lists.filter(
+        (list) => list?.entries?.length ?? -1 > 0
+      );
+    if (getCharIds.MediaListCollection.lists.length == 0)
+      return Error("All of User's Lists are empty.");
+    const list =
+      getCharIds.MediaListCollection.lists[
+        Math.floor(
+          Math.random() * (getCharIds.MediaListCollection.lists.length - 1)
+        )
+      ];
 
+    // Second: The Media will be selected below
+    if (!list?.entries?.length || list.entries.length < 0)
+      return Error(
+        "Unexpected error occured while processing the selected list"
+      );
+    list.entries = list.entries.filter(
+      (entry) => entry?.media?.characters?.nodes?.length ?? -1 > 0
+    );
+    const media =
+      list.entries[Math.floor(Math.random() * (list.entries.length - 1))]
+        ?.media;
+
+    // Third: The Character will be selected below
+    if (!media?.characters?.nodes || media.characters.nodes.length < 0)
+      return Error(
+        "Unexpected error occured while processing the selected media"
+      );
+    const characterId =
+      media.characters.nodes[
+        Math.floor(Math.random() * (media.characters.nodes.length - 1))
+      ]?.id;
+    if (!characterId)
+      return Error(
+        "Unexpected error occured while processing the selected character"
+      );
+
+    const characterInfoQuery = graphql(`
+      query CharInfo($id: Int) {
+        Character(id: $id) {
+          name {
+            full
+            native
+            alternative
+            alternativeSpoiler
+          }
+          image {
+            large
+          }
+          description
+          gender
+          siteUrl
+        }
+      }
+    `);
+    const characterInfo = (
+      await this.graphQlClient.request(characterInfoQuery, { id: characterId })
+    ).Character;
+
+    if (!characterInfo)
+      return Error(
+        "Unexpected error occured while fetching the selected character info"
+      );
+
+    return characterInfo;
+  }
+
+  async GetRandomCharacter() {
+    const countQuery = graphql(`
+      query Count {
+        SiteStatistics {
+          characters(perPage: 1, sort: COUNT_DESC) {
+            nodes {
+              count
+            }
+          }
+        }
+      }
+    `);
+    const countRes = (
+      await this.graphQlClient.request(countQuery)
+    ).SiteStatistics?.characters?.nodes?.at(0)?.count;
+    if (!countRes) throw Error("Unable to get Character Count");
+
+    const pageNo = Math.floor(Math.random() * countRes);
 
     const charQuery = graphql(`
       query Charac($pageNo: Int) {
@@ -94,88 +191,38 @@ export class AniListClient {
       }
     `);
 
-      const charRes = await this.graphQlClient.request(charQuery, {pageNo});
+    const charRes = await this.graphQlClient.request(charQuery, { pageNo });
 
-      return charRes.Page?.characters?.at(0);
+    return charRes.Page?.characters?.at(0);
   }
-
-
-
 
   async GetSeasonList(
     season: "WINTER" | "SPRING" | "SUMMER" | "FALL",
     year: number
   ) {
-    const query = graphql(`
-      query SeasonList(
-        $season: MediaSeason
-        $seasonYear: Int
-        $format: MediaFormat
-        $excludeformat: MediaFormat
-      ) {
-        Page(perPage: 50) {
-          media(
-            season: $season
-            seasonYear: $seasonYear
-            type: ANIME
-            format: $format
-            format_not: $excludeformat
-          ) {
-            id
-            idMal
-            isAdult
-            title {
-              english
-              native
-              romaji
-            }
-            status
-            description
-            startDate {
-              year
-              month
-              day
-            }
-            endDate {
-              year
-              month
-              day
-            }
-            episodes
-            duration
-            source
-            trailer {
-              site
-              id
-            }
-            coverImage {
-              extraLarge
-              color
-            }
-            bannerImage
-            genres
-            meanScore
-            averageScore
-            nextAiringEpisode {
-              episode
-              airingAt
-            }
-            characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
-              edges {
-                voiceActorRoles(sort: [RELEVANCE, ID]) {
-                  voiceActor {
-                    language: languageV2
-                  }
-                }
-                node {
-                  id
-                }
-              }
+    const query = graphql(
+      `
+        query SeasonList(
+          $season: MediaSeason
+          $seasonYear: Int
+          $format: MediaFormat
+          $excludeformat: MediaFormat
+        ) {
+          Page(perPage: 50) {
+            media(
+              season: $season
+              seasonYear: $seasonYear
+              type: ANIME
+              format: $format
+              format_not: $excludeformat
+            ) {
+              ...media
             }
           }
         }
-      }
-    `);
+      `,
+      [mediaFragment]
+    );
 
     const TVList = (
       await this.graphQlClient.request(query, {
@@ -199,8 +246,6 @@ export class AniListClient {
     else if (!TVList && ExcludeTVList) return ExcludeTVList;
     else return [];
   }
-
-  
 
   async GetAiringToday() {
     const datetime = new Date();
@@ -240,8 +285,6 @@ export class AniListClient {
     return res.Page?.airingSchedules;
   }
 
-
-
   async SearchAnime(name: string, count: number) {
     const query = graphql(`
       query SearchAnime($name: String, $perPage: Int) {
@@ -266,8 +309,6 @@ export class AniListClient {
     return res.Page?.media;
   }
 
-
-
   async GetMedia(animeId: number) {
     const query = graphql(
       `
@@ -285,9 +326,7 @@ export class AniListClient {
     return res.Media;
   }
 
-
-
-  async GetMediaList(animeIds: number[]){
+  async GetMediaList(animeIds: number[]) {
     const query = graphql(
       `
         query GetMediaList($ids: [Int]) {
@@ -301,12 +340,10 @@ export class AniListClient {
       [mediaFragment]
     );
 
-    const res = await this.graphQlClient.request(query, {ids: animeIds});
+    const res = await this.graphQlClient.request(query, { ids: animeIds });
 
     return res;
   }
-
-
 
   async SearchNSFW(name: string, count: number) {
     const query = graphql(`
@@ -333,8 +370,6 @@ export class AniListClient {
     return res.Page?.media;
   }
 
-
-
   async GetAlreadyWatched(
     accessToken: string,
     animeId: number,
@@ -348,24 +383,23 @@ export class AniListClient {
       }
     `);
 
-
-    const res = await this.graphQlClient.request(
-      query,
-      {
-        userId: userId,
-        animeId: animeId,
-      },
-      {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      }
-    ).catch(()=> false);
+    const res = await this.graphQlClient
+      .request(
+        query,
+        {
+          userId: userId,
+          animeId: animeId,
+        },
+        {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        }
+      )
+      .catch(() => false);
 
     return res;
   }
-
-
 
   async AddToWatchlist(accessToken: string, animeId: number) {
     const query = graphql(`
@@ -387,26 +421,29 @@ export class AniListClient {
     `);
 
     const date = new Date();
-    const res = this.graphQlClient.request(query, {
-      animeId,
-      startedAt: {
-        day: date.getDate(),
-        month: date.getMonth(),
-        year: date.getFullYear(),
+    const res = this.graphQlClient.request(
+      query,
+      {
+        animeId,
+        startedAt: {
+          day: date.getDate(),
+          month: date.getMonth(),
+          year: date.getFullYear(),
+        },
       },
-    }, {
+      {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         Accept: "application/json",
-      });
+      }
+    );
 
     return res;
   }
 }
 
-
 const mediaFragment = graphql(`
-  fragment media on Media  @_unmask {
+  fragment media on Media @_unmask {
     id
     idMal
     isAdult

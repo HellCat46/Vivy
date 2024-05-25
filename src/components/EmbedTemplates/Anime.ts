@@ -20,9 +20,7 @@ const months = [
   "Dec",
 ];
 
-export function AnimeEmbed(
-  data: AnimeFields,
-) {
+export function AnimeEmbed(data: AnimeFields) {
   const langList = getLangList(data);
 
   const embed = new EmbedBuilder()
@@ -64,7 +62,11 @@ export function AnimeEmbed(
     }${data.episodes ? `\n**Episode Count:** ${data.episodes}` : ""}${
       data.duration ? `\n**Episode Duration:** ${data.duration} Minutes` : ""
     }${
-      langList.length != 0 ? `\n**Available In:** ${langList.filter((lang, idx)=> langList.indexOf(lang) === idx).toString()}` : ""
+      langList.length != 0
+        ? `\n**Available In:** ${langList
+            .filter((lang, idx) => langList.indexOf(lang) === idx)
+            .toString()}`
+        : ""
     }${
       data.startDate?.year
         ? `\n**Started:** ${
@@ -115,9 +117,30 @@ export function AnimeEmbed(
         .setLabel("Trailer Link")
     );
 
-    
-return { embeds: [embed], components: [component] };
+  return { embeds: [embed], components: [component] };
+}
 
+export function CharacterEmbed(character: CharacterFields) {
+  return new EmbedBuilder()
+    .setTitle(character?.name?.full ?? character?.name?.native ?? null)
+    .setDescription(
+      `${
+        character?.name?.alternative?.at(0)
+          ? "**Alternative Title:** " +
+            character.name.alternative.join(", ") +
+            "\n"
+          : ""
+      }${
+        character?.name?.alternativeSpoiler?.at(0)
+          ? "**Spoiler Title:** ||" +
+            character.name.alternativeSpoiler.join(", ") +
+            "||\n"
+          : ""
+      }${character?.description ?? ""} ` // One White is required in case all the fields were null or empty
+    )
+    .setImage(character?.image?.large ?? null)
+    .setTimestamp()
+    .setURL(character?.siteUrl ?? null);
 }
 
 export function getLangList(data: AnimeFields) {
@@ -178,5 +201,20 @@ interface AnimeFields {
             | null;
         } | null)[]
       | null;
+  } | null;
+}
+
+interface CharacterFields {
+  siteUrl: string | null;
+  gender: string | null;
+  description: string | null;
+  image: {
+    large: string | null;
+  } | null;
+  name: {
+    alternativeSpoiler: (string | null)[] | null;
+    alternative: (string | null)[] | null;
+    native: string | null;
+    full: string | null;
   } | null;
 }
