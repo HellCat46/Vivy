@@ -10,6 +10,8 @@ export class AniListClient {
     this.ClientSecret = ClientSecret;
     this.ClientId = ClientId;
   }
+
+  
   async GetRandomAnime(nsfw: boolean) {
     while (true) {
       const countQuery = graphql(`
@@ -30,65 +32,18 @@ export class AniListClient {
         throw new Error("Unable to Get Media Count");
 
       const pageNo = Math.floor(Math.random() * animeCount[0].count);
-      const query = graphql(`
-        query RandomAnime($pageNo: Int) {
-          Page(page: $pageNo, perPage: 1) {
-            media(type: ANIME) {
-              id
-              idMal
-              isAdult
-              title {
-                english
-                native
-                romaji
-              }
-              status
-              description
-              startDate {
-                year
-                month
-                day
-              }
-              endDate {
-                year
-                month
-                day
-              }
-              episodes
-              duration
-              source
-              trailer {
-                site
-                id
-              }
-              coverImage {
-                extraLarge
-                color
-              }
-              bannerImage
-              genres
-              meanScore
-              averageScore
-              nextAiringEpisode {
-                episode
-                airingAt
-              }
-              characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
-                edges {
-                  voiceActorRoles(sort: [RELEVANCE, ID]) {
-                    voiceActor {
-                      language: languageV2
-                    }
-                  }
-                  node {
-                    id
-                  }
-                }
+      const query = graphql(
+        `
+          query RandomAnime($pageNo: Int) {
+            Page(page: $pageNo, perPage: 1) {
+              media(type: ANIME) {
+                ...media
               }
             }
           }
-        }
-      `);
+        `,
+        [mediaFragment]
+      );
       const res = await this.graphQlClient.request(query, {
         pageNo,
       });
@@ -97,6 +52,8 @@ export class AniListClient {
         return res.Page.media[0];
     }
   }
+
+
 
   async GetRandomCharacter(){
     const countQuery = graphql(`
@@ -141,6 +98,9 @@ export class AniListClient {
 
       return charRes.Page?.characters?.at(0);
   }
+
+
+
 
   async GetSeasonList(
     season: "WINTER" | "SPRING" | "SUMMER" | "FALL",
@@ -240,6 +200,8 @@ export class AniListClient {
     else return [];
   }
 
+  
+
   async GetAiringToday() {
     const datetime = new Date();
     const startTimestamp = Math.floor(
@@ -278,6 +240,8 @@ export class AniListClient {
     return res.Page?.airingSchedules;
   }
 
+
+
   async SearchAnime(name: string, count: number) {
     const query = graphql(`
       query SearchAnime($name: String, $perPage: Int) {
@@ -302,137 +266,47 @@ export class AniListClient {
     return res.Page?.media;
   }
 
-  async GetMedia(animeId: number) {
-    const query = graphql(`
-      query GetMedia($id: Int) {
-        Media(id: $id) {
-          id
-          idMal
-          isAdult
-          title {
-            english
-            native
-            romaji
-          }
-          status
-          description(asHtml: false)
-          startDate {
-            year
-            month
-            day
-          }
-          endDate {
-            year
-            month
-            day
-          }
-          episodes
-          duration
-          source
-          trailer {
-            site
-            id
-          }
-          coverImage {
-            extraLarge
-            color
-          }
-          bannerImage
-          genres
-          meanScore
-          averageScore
-          nextAiringEpisode {
-            episode
-            airingAt
-          }
 
-          characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
-            edges {
-              voiceActorRoles(sort: [RELEVANCE, ID]) {
-                voiceActor {
-                  language: languageV2
-                }
-              }
-              node {
-                id
-              }
-            }
+
+  async GetMedia(animeId: number) {
+    const query = graphql(
+      `
+        query GetMedia($id: Int) {
+          Media(id: $id) {
+            ...media
           }
         }
-      }
-    `);
+      `,
+      [mediaFragment]
+    );
 
     const res = await this.graphQlClient.request(query, { id: animeId });
 
     return res.Media;
   }
 
-  async GetMediaList(animeIds: number[]){
-    const query = graphql(`
-      query GetMediaList($ids: [Int]) {
-        Page(perPage: 25, page: 1) {
-          media(id_in: $ids) {
-            id
-            idMal
-            isAdult
-            title {
-              english
-              native
-              romaji
-            }
-            status
-            description(asHtml: false)
-            startDate {
-              year
-              month
-              day
-            }
-            endDate {
-              year
-              month
-              day
-            }
-            episodes
-            duration
-            source
-            trailer {
-              site
-              id
-            }
-            coverImage {
-              extraLarge
-              color
-            }
-            bannerImage
-            genres
-            meanScore
-            averageScore
-            nextAiringEpisode {
-              episode
-              airingAt
-            }
 
-            characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
-              edges {
-                voiceActorRoles(sort: [RELEVANCE, ID]) {
-                  voiceActor {
-                    language: languageV2
-                  }
-                }
-                node {
-                  id
-                }
-              }
+
+  async GetMediaList(animeIds: number[]){
+    const query = graphql(
+      `
+        query GetMediaList($ids: [Int]) {
+          Page(perPage: 25, page: 1) {
+            media(id_in: $ids) {
+              ...media
             }
           }
         }
-      }
-    `);
+      `,
+      [mediaFragment]
+    );
 
     const res = await this.graphQlClient.request(query, {ids: animeIds});
 
     return res;
   }
+
+
 
   async SearchNSFW(name: string, count: number) {
     const query = graphql(`
@@ -458,6 +332,8 @@ export class AniListClient {
 
     return res.Page?.media;
   }
+
+
 
   async GetAlreadyWatched(
     accessToken: string,
@@ -488,6 +364,8 @@ export class AniListClient {
 
     return res;
   }
+
+
 
   async AddToWatchlist(accessToken: string, animeId: number) {
     const query = graphql(`
@@ -525,3 +403,60 @@ export class AniListClient {
     return res;
   }
 }
+
+
+const mediaFragment = graphql(`
+  fragment media on Media  @_unmask {
+    id
+    idMal
+    isAdult
+    title {
+      english
+      native
+      romaji
+    }
+    status
+    description
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    episodes
+    duration
+    source
+    trailer {
+      site
+      id
+    }
+    coverImage {
+      extraLarge
+      color
+    }
+    bannerImage
+    genres
+    meanScore
+    averageScore
+    nextAiringEpisode {
+      episode
+      airingAt
+    }
+    characters(page: 1, sort: [ROLE, RELEVANCE, ID]) {
+      edges {
+        voiceActorRoles(sort: [RELEVANCE, ID]) {
+          voiceActor {
+            language: languageV2
+          }
+        }
+        node {
+          id
+        }
+      }
+    }
+  }
+`);
