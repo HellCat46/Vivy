@@ -98,6 +98,50 @@ export class AniListClient {
     }
   }
 
+  async GetRandomCharacter(){
+    const countQuery = graphql(`
+        query Count {
+          SiteStatistics {
+            characters(perPage: 1, sort: COUNT_DESC) {
+              nodes {
+                count
+              }
+            }
+          }
+        }
+      `);
+    const countRes = (await this.graphQlClient.request(countQuery)).SiteStatistics?.characters?.nodes?.at(0)?.count;
+    if(!countRes) throw  Error("Unable to get Character Count");
+
+    const pageNo = Math.floor(Math.random()* countRes)
+
+
+    const charQuery = graphql(`
+      query Charac($pageNo: Int) {
+        Page(perPage: 1, page: $pageNo) {
+          characters {
+            name {
+              full
+              native
+              alternative
+              alternativeSpoiler
+            }
+            image {
+              large
+            }
+            description
+            gender
+            siteUrl
+          }
+        }
+      }
+    `);
+
+      const charRes = await this.graphQlClient.request(charQuery, {pageNo});
+
+      return charRes.Page?.characters?.at(0);
+  }
+
   async GetSeasonList(
     season: "WINTER" | "SPRING" | "SUMMER" | "FALL",
     year: number

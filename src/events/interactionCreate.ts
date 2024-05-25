@@ -11,7 +11,7 @@ module.exports = {
         const command = client.commands.get(i.commandName);
         if (!command) return;
 
-        command.baseCommand.execute(command, client, i);
+        await command.baseCommand.execute(command, client, i);
       } else if (i.isAutocomplete()) {
         const command = client.commands.get(i.commandName);
         if (!command || !command.baseCommand.autocomplete) return;
