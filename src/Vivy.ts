@@ -1,4 +1,5 @@
 import {
+  ActivityType,
   ApplicationCommandOptionType,
   Client,
   Collection,
@@ -15,9 +16,17 @@ export class Vivy extends Client {
   commands: Collection<string, BaseCommand>;
   accessTokens: Collection<
     string,
-    { access_token: string; userId: number, expires_at: number }
+    { access_token: string; userId: number; expires_at: number }
   >;
-  suggestions : Collection<string, {animeId: number, animeName: string, suggestedAt : number, suggestedBy: string}[]>
+  suggestions: Collection<
+    string,
+    {
+      animeId: number;
+      animeName: string;
+      suggestedAt: number;
+      suggestedBy: string;
+    }[]
+  >;
   anilistClient: AniListClient;
   jobManager: Collection<{ userId: string; showId: number }, Job>;
 
@@ -38,6 +47,8 @@ export class Vivy extends Client {
 
     this.UpdateEventHandlers();
     this.UpdateCommandCollection();
+
+    
   }
 
   async RegisterCommands() {
@@ -137,8 +148,36 @@ export class Vivy extends Client {
       }
     }
   }
-}
 
+  statues: { type: ActivityType; name: string; status : string, url?: string }[] = [
+    {
+      type: ActivityType.Competing,
+      name: "Discord With Frieren",
+      status: "She is actually dead lmao."
+    },
+    {
+      type: ActivityType.Listening,
+      name: "same 10 songs",
+      status: "because my dev has shit music taste.",
+    },
+    {
+      type: ActivityType.Playing,
+      name: "Weebo Games... ",
+      status: "This one is actually pretty funny if you know the context.",
+    },
+    {
+      type: ActivityType.Watching,
+      name: "Asahi Lina",
+      status: "and you should too!!!!",
+      url: "https://www.youtube.com/live/stAbBrS8ZYs?si=SxMlljDdy10FmGsG",
+    },
+    {
+      type: ActivityType.Custom,
+      name: "",
+      status: "Dying from Cringe With my Dev after reading all the shit jokes he wrote for this.",
+    },
+  ];
+}
 
 export interface BaseCommand {
   baseCommand: {
